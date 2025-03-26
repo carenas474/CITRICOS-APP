@@ -4,31 +4,41 @@ import numpy as np
 from PIL import Image
 
 # Cargar el modelo
-@st.cache_resource
+@st.cache_resource  # Optimiza la carga del modelo en Streamlit
 def load_model():
     return tf.keras.models.load_model("modelo_citricos_clase.h5")
 
 model = load_model()
 
-# Clases de enfermedades (ajusta según tu modelo)
-class_names = ["Enfermedad 1", "Enfermedad 2", "Enfermedad 3", "Sano"]
+# Etiquetas de las enfermedades (ajusta según tu modelo)
+class_labels = ["Sana", "Enfermedad 1", "Enfermedad 2", "Enfermedad 3"]  # Modificar según el modelo
 
-def predict_image(image):
-    img = image.resize((224, 224))  # Ajusta el tamaño según el modelo
-    img_array = np.array(img) / 255.0  # Normalizar
-    img_array = np.expand_dims(img_array, axis=0)  # Expandir dimensiones
+# Función para preprocesar la imagen
+def preprocess_image(image):
+    image = image.convert("RGB")  # Asegurar formato RGB
+    image = image.resize((128, 128))  # Ajustar tamaño al que espera el modelo
+    img_array = np.array(image) / 255.0  # Normalización
+    img_array = np.expand_dims(img_array, axis=0)  # Expandir dimensiones para el modelo
+    return img_array
+
+# Interfaz de Streamlit
+st.title("🌿 Detección de Enfermedades en Cítricos")
+
+# Opción para subir una imagen
+uploaded_file = st.file_uploader("📤 Sube una imagen de la hoja", type=["jpg", "png", "jpeg"])
+
+# Opción para tomar una foto con la cámara
+camera_image = st.camera_input("📸 O toma una foto con la cámara")
+
+# Procesar la imagen (ya sea subida o tomada con la cámara)
+if uploaded_file or camera_image:
+    image = Image.open(uploaded_file if uploaded_file else camera_image)
+    st.image(image, caption="📷 Imagen cargada", use_column_width=True)
+
+    # Predecir
+    img_array = preprocess_image(image)
     prediction = model.predict(img_array)
-    return class_names[np.argmax(prediction)]
+    predicted_class = np.argmax(prediction)
 
-st.title("Detección de Enfermedades en Cítricos")
-
-# Opción para cargar imagen
-uploaded_file = st.file_uploader("Sube una imagen de la hoja del cítrico", type=["jpg", "png", "jpeg"])
-
-if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Imagen Cargada", use_column_width=True)
-    
-    # Hacer predicción
-    prediction = predict_image(image)
-    st.write(f"### Predicción: {prediction}")
+    # Mostrar resultado
+    st.success(f"🔍 Resultado: {class_labels[predicted_class]}")
