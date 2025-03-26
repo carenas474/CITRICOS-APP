@@ -11,7 +11,7 @@ def load_model():
 model = load_model()
 
 # Etiquetas de las enfermedades (ajusta según tu modelo)
-class_labels = ["Sana", "Enfermedad 1", "Enfermedad 2", "Enfermedad 3"]  # Modificar según el modelo
+class_labels = ["Black Spot", "Canker", "Greening", "Healthy", "Melanose"]
 
 # Función para preprocesar la imagen
 def preprocess_image(image):
